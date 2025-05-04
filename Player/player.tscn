@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://bcvibqcskau4i"]
+[gd_scene load_steps=5 format=3 uid="uid://bcvibqcskau4i"]
 
 [sub_resource type="GDScript" id="GDScript_jxivo"]
 script/source = "extends CharacterBody3D
@@ -38,6 +38,8 @@ func _physics_process(delta):
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6ugdm"]
 
+[sub_resource type="SeparationRayShape3D" id="SeparationRayShape3D_53ral"]
+
 [node name="Player" type="CharacterBody3D"]
 script = SubResource("GDScript_jxivo")
 
@@ -47,5 +49,9 @@ shape = SubResource("CapsuleShape3D_vq3gg")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = SubResource("CapsuleMesh_6ugdm")
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="SpringArm3D" type="SpringArm3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, 2, 4)
+shape = SubResource("SeparationRayShape3D_53ral")
+
+[node name="Camera3D" type="Camera3D" parent="SpringArm3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
