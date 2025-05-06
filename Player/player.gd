@@ -10,6 +10,13 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _look = Vector2.ZERO
 
 @export var mouse_sensitivity = 0.00075
+@export var min_boundary: float = -60
+@export var max_boundary: float = 10
+
+
+@onready var horizontal_pivot: Node3D = $HorizontalPivot
+@onready var vertical_pivot: Node3D = $HorizontalPivot/VerticalPivot
+
 
 func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -26,8 +33,7 @@ func _physics_process(delta):
 
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
-	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	var direction := get_movement_direction()
 	if direction:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
@@ -43,10 +49,23 @@ func _unhandled_input(event: InputEvent):
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if event is InputEventMouseMotion:
 			_look = -event.relative * mouse_sensitivity
-			print(_look)
+
+func get_movement_direction() -> Vector3:
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var input_vector := Vector3(input_dir.x, 0, input_dir.y).normalized()
+	return horizontal_pivot.global_transform.basis * input_vector
+
 
 func frame_camera_rotation():
-	$SpringArm3D.rotate_y(_look.x)
+	horizontal_pivot.rotate_y(_look.x)
+	vertical_pivot.rotate_x(_look.y)
+	
+	vertical_pivot.rotation.x = clampf(
+		vertical_pivot.rotation.x, 
+		deg_to_rad(min_boundary), 
+		deg_to_rad(max_boundary)
+		)
+
 	_look = Vector2.ZERO
 
 
