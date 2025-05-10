@@ -2,10 +2,9 @@
 
 [ext_resource type="Script" path="res://Player/player.gd" id="1_0nuts"]
 [ext_resource type="Script" path="res://Player/SmoothCameraArm.gd" id="2_5f5xo"]
+[ext_resource type="PackedScene" uid="uid://3ihes8ua0wtu" path="res://rig.tscn" id="3_tw0g7"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_vq3gg"]
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_6ugdm"]
 
 [sub_resource type="SeparationRayShape3D" id="SeparationRayShape3D_53ral"]
 
@@ -14,9 +13,6 @@ script = ExtResource("1_0nuts")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_vq3gg")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("CapsuleMesh_6ugdm")
 
 [node name="SmoothCameraArm" type="SpringArm3D" parent="." node_paths=PackedStringArray("target")]
 transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, 0, 0)
@@ -30,3 +26,8 @@ target = NodePath("../HorizontalPivot/VerticalPivot")
 [node name="HorizontalPivot" type="Node3D" parent="."]
 
 [node name="VerticalPivot" type="Node3D" parent="HorizontalPivot"]
+
+[node name="RigPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[node name="Rig" parent="RigPivot" instance=ExtResource("3_tw0g7")]
