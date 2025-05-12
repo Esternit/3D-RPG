@@ -15,9 +15,11 @@ var _look = Vector2.ZERO
 @export var animation_decay: float = 20.0
 
 
+
 @onready var horizontal_pivot: Node3D = $HorizontalPivot
 @onready var vertical_pivot: Node3D = $HorizontalPivot/VerticalPivot
 @onready var rig_pivot = $RigPivot
+@onready var rig = $RigPivot/Rig
 
 
 func _ready():
@@ -29,11 +31,13 @@ func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
-
 	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 
 	var direction := get_movement_direction()
+	
+	rig.update_animation_tree(direction)
+	
 	if direction:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
@@ -41,15 +45,21 @@ func _physics_process(delta):
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
-
+		
+	
 	move_and_slide()
+	
 	
 func _unhandled_input(event: InputEvent):
 	if event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if event is InputEventMouseMotion:
 			_look = -event.relative * mouse_sensitivity
+	
+	if rig.is_idle() and event.is_action_pressed("click"):
+		slash_attack()
 
 func get_movement_direction() -> Vector3:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
@@ -75,11 +85,14 @@ func look_toward_direction(direction: Vector3, delta: float) -> void:
 		Vector3.UP,
 		true
 	)
+	
 	rig_pivot.global_transform = rig_pivot.global_transform.interpolate_with(
 		target_transform,
 		1.0 - exp(-animation_decay * delta)
 	)
-	
+
+func slash_attack() -> void:
+	rig.travel("Slash")
 
 
 
