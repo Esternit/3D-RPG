@@ -7,19 +7,22 @@ const JUMP_VELOCITY = 4.5
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 #Stores X/Y direction the player is trying to look in
-var _look = Vector2.ZERO
+var _look := Vector2.ZERO
+#Stores the direction the player moves when attacking
+var _attack_direction := Vector3.ZERO
 
 @export var mouse_sensitivity = 0.00075
 @export var min_boundary: float = -60
 @export var max_boundary: float = 10
 @export var animation_decay: float = 20.0
-
+@export var attack_move_speed: float= 3.0
 
 
 @onready var horizontal_pivot: Node3D = $HorizontalPivot
 @onready var vertical_pivot: Node3D = $HorizontalPivot/VerticalPivot
 @onready var rig_pivot = $RigPivot
 @onready var rig = $RigPivot/Rig
+@onready var attack_cast = %AttackCast
 
 
 func _ready():
@@ -28,27 +31,18 @@ func _ready():
 func _physics_process(delta):
 	frame_camera_rotation()
 
-	if not is_on_floor():
-		velocity.y -= gravity * delta
-
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-
 	var direction := get_movement_direction()
 	
 	rig.update_animation_tree(direction)
-	
-	if direction:
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
-		look_toward_direction(direction, delta)
-	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
+
+	handle_idle_physics_frame(delta, direction)
 		
-	
+	handle_slashing_physics_frame(delta)
+
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+		
 	move_and_slide()
-	
 	
 func _unhandled_input(event: InputEvent):
 	if event.is_action_pressed("ui_cancel"):
@@ -93,6 +87,32 @@ func look_toward_direction(direction: Vector3, delta: float) -> void:
 
 func slash_attack() -> void:
 	rig.travel("Slash")
+	_attack_direction = get_movement_direction()
+	if _attack_direction.is_zero_approx():
+		_attack_direction = rig.global_basis * Vector3(0, 0, 1)
+	
+	attack_cast.clear_exceptions()
+		
+func handle_idle_physics_frame(delta: float, direction: Vector3) -> void:
+	if not rig.is_idle():
+		return
+		 
+	if direction:
+		velocity.x = direction.x * SPEED
+		velocity.z = direction.z * SPEED
+		look_toward_direction(direction, delta)
+	else:
+		velocity.x = move_toward(velocity.x, 0, SPEED)
+		velocity.z = move_toward(velocity.z, 0, SPEED) 
 
+func handle_slashing_physics_frame(delta: float) -> void:
+	if not rig.is_slashing():
+		return
+		
+	velocity.x = _attack_direction.x * attack_move_speed
+	velocity.z = _attack_direction.z * attack_move_speed
+	look_toward_direction(_attack_direction, delta)
+	
+	attack_cast.deal_damage()
 
 
